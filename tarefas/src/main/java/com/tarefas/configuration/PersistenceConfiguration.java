@@ -4,13 +4,14 @@ import java.util.Properties;
 
 import javax.sql.DataSource;
 
+import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.orm.hibernate4.HibernateTransactionManager;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -46,22 +47,21 @@ public class PersistenceConfiguration {
 	@Bean
 	public DataSource dataSource(){
 		DriverManagerDataSource dataSource = new DriverManagerDataSource();
-		
-		dataSource.setDriverClassName("org.h2.Driver");
-		dataSource.setUrl("jdbc:h2:mem:test");
-		dataSource.setUsername("sa");
-		dataSource.setPassword("");
+		dataSource.setDriverClassName(environment.getRequiredProperty("db.driver"));
+		dataSource.setUrl(environment.getProperty("db.url"));
+		dataSource.setUsername(environment.getProperty("db.username"));
+		dataSource.setPassword(environment.getProperty("db.password"));
 		
 		return dataSource;
 	}
 	
-	
+	@Bean
 	@Autowired
-	@Bean(name="transactionManager")
-	public DataSourceTransactionManager getTransactionManager(DataSource dataSource){
-		DataSourceTransactionManager transactionManager = new DataSourceTransactionManager(dataSource);
+	public HibernateTransactionManager transactionManager(SessionFactory sessionFactory){
+		HibernateTransactionManager txManager = new HibernateTransactionManager();
+		txManager.setSessionFactory(sessionFactory);
 		
-		return transactionManager;
+		return txManager;
 	}
 	
 }
